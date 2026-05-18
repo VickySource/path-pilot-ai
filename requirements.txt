@@ -25,3 +25,8 @@ duckduckgo-search
 plotly
 feedparser
 xhtml2pdf
+requests
+pandas
+fastapi
+unicorn
+langchain-text-splitters
