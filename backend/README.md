@@ -20,7 +20,7 @@ backend/
 │   ├── services/
 │   │   ├── embedding_service.py   # sentence-transformers wrapper
 │   │   ├── ollama_service.py      # Ollama LLM wrapper (sync + streaming)
-│   │   └── document_service.py   # file I/O, text extraction, chunking
+│   │   └── document_service.py    # file I/O, text extraction, chunking
 │   ├── rag/
 │   │   └── pipeline.py        # Full RAG pipeline (embed → retrieve → generate)
 │   ├── workflows/
@@ -38,9 +38,23 @@ backend/
 ├── chroma_db/                 # ChromaDB persistent storage (auto-created)
 ├── uploads/                   # Uploaded files (auto-created)
 ├── requirements.txt
-├── .env
+├── .env.example               # Copy this to .env and fill in values
 └── README.md
 ```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| API Framework | FastAPI |
+| LLM | Ollama (llama3) |
+| Embeddings | sentence-transformers/all-MiniLM-L6-v2 |
+| Vector Database | ChromaDB (persistent) |
+| AI Orchestration | LangChain + LangGraph |
+| Document Parsing | pypdf, python-docx |
+| Runtime | Python 3.11 |
 
 ---
 
@@ -48,29 +62,32 @@ backend/
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Python | 3.11+ | [python.org](https://python.org) |
+| Python | 3.11 | [python.org](https://python.org) |
 | Ollama | latest | [ollama.com](https://ollama.com) |
 | llama3 model | — | `ollama pull llama3` |
+
+> ⚠️ Python 3.12+ is supported. Python 3.14 is NOT supported (pydantic-core requires ≤3.13).
 
 ---
 
 ## Setup
 
-### 1. Clone / navigate to the backend folder
+### 1. Clone the repository
 
 ```bash
-cd backend
+git clone https://github.com/VickySource/path-pilot-ai.git
+cd path-pilot-ai/backend
 ```
 
-### 2. Create a virtual environment
+### 2. Create a virtual environment with Python 3.11
 
 ```bash
-python -m venv venv
-
 # Windows
+py -3.11 -m venv venv
 venv\Scripts\activate
 
 # macOS / Linux
+python3.11 -m venv venv
 source venv/bin/activate
 ```
 
@@ -80,28 +97,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment
-
-Copy `.env` and adjust values if needed:
+### 4. Configure environment variables
 
 ```bash
-# The defaults work out of the box for local development
-# Key settings:
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
-CHROMA_PERSIST_DIR=./chroma_db
-EMBEDDING_MODEL=all-MiniLM-L6-v2
+# Copy the example file
+copy .env.example .env   # Windows
+cp .env.example .env     # macOS/Linux
+
+# Edit .env if needed (defaults work for local development)
 ```
 
-### 5. Start Ollama and pull the model
+### 5. Start Ollama
 
 ```bash
-# In a separate terminal
+# In a separate terminal — keep this running
 ollama serve
 
-# Pull the model (one-time, ~4 GB download)
+# Pull the model (one-time download, ~4 GB)
 ollama pull llama3
 ```
+
+> If you see `bind: Only one usage of each socket address` — Ollama is already running. Skip this step.
 
 ### 6. Start the server
 
@@ -109,23 +125,24 @@ ollama pull llama3
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API is now available at **http://localhost:8000**
+The API is now live at **http://localhost:8000**
 
-- Interactive docs: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- Health check: http://localhost:8000/health
+| URL | Description |
+|-----|-------------|
+| http://localhost:8000/docs | Swagger UI (interactive) |
+| http://localhost:8000/redoc | ReDoc documentation |
+| http://localhost:8000/health | Health check |
 
 ---
 
-## API Reference
+## API Endpoints
 
 ### POST /upload
-
 Upload a PDF, DOCX, or TXT file for indexing.
 
 ```bash
 curl -X POST http://localhost:8000/upload \
-  -F "file=@/path/to/your/document.pdf"
+  -F "file=@/path/to/document.pdf"
 ```
 
 **Response:**
@@ -142,7 +159,6 @@ curl -X POST http://localhost:8000/upload \
 ---
 
 ### POST /chat
-
 Ask a question grounded in your indexed documents.
 
 ```bash
@@ -162,9 +178,9 @@ curl -X POST http://localhost:8000/chat \
   "sources": [
     {
       "document_id": "550e8400-...",
-      "source_file": "data_science_guide.pdf",
+      "source_file": "guide.pdf",
       "chunk_index": 3,
-      "content_preview": "Data scientists require proficiency in...",
+      "content_preview": "Data scientists require...",
       "relevance_score": 0.87
     }
   ],
@@ -176,7 +192,6 @@ curl -X POST http://localhost:8000/chat \
 ---
 
 ### POST /search
-
 Semantic similarity search over indexed documents.
 
 ```bash
@@ -189,28 +204,9 @@ curl -X POST http://localhost:8000/search \
   }'
 ```
 
-**Response:**
-```json
-{
-  "query": "machine learning algorithms",
-  "results": [
-    {
-      "document_id": "550e8400-...",
-      "source_file": "ml_guide.pdf",
-      "chunk_index": 7,
-      "content": "Supervised learning algorithms include...",
-      "score": 0.91,
-      "metadata": { ... }
-    }
-  ],
-  "total_found": 5
-}
-```
-
 ---
 
 ### POST /skill-gap-analysis
-
 Analyse the gap between current skills and a target role.
 
 ```bash
@@ -227,7 +223,7 @@ curl -X POST http://localhost:8000/skill-gap-analysis \
 {
   "target_role": "Machine Learning Engineer",
   "current_skills": ["Python", "SQL", "Excel", "Statistics"],
-  "required_skills": ["Python", "TensorFlow", "PyTorch", "Docker", "MLOps", "..."],
+  "required_skills": ["Python", "TensorFlow", "PyTorch", "Docker", "MLOps"],
   "missing_skills": ["TensorFlow", "PyTorch", "Docker", "Kubernetes", "MLOps"],
   "matching_skills": ["Python", "SQL", "Statistics"],
   "gap_percentage": 62.5,
@@ -257,14 +253,13 @@ curl -X POST http://localhost:8000/skill-gap-analysis \
       "skills": ["TensorFlow", "PyTorch"]
     }
   ],
-  "summary": "With your Python and statistics background, you're well-positioned..."
+  "summary": "With your Python and statistics background, you are well-positioned..."
 }
 ```
 
 ---
 
 ### GET /documents
-
 List all indexed documents.
 
 ```bash
@@ -274,7 +269,6 @@ curl http://localhost:8000/documents
 ---
 
 ### DELETE /document/{id}
-
 Delete a document and all its chunks.
 
 ```bash
@@ -291,10 +285,10 @@ User Request
      ▼
 FastAPI Router
      │
-     ├── /upload ──► DocumentService (extract + chunk) ──► EmbeddingService ──► ChromaDB
+     ├── /upload ──► DocumentService (extract + chunk)
+     │                    └──► EmbeddingService ──► ChromaDB
      │
      ├── /chat ───► RAGPipeline
-     │                   │
      │                   ├── EmbeddingService (embed query)
      │                   ├── ChromaDB (retrieve top-k chunks)
      │                   └── OllamaService (generate answer)
@@ -302,10 +296,9 @@ FastAPI Router
      ├── /search ──► EmbeddingService ──► ChromaDB
      │
      └── /skill-gap-analysis ──► LangGraph Workflow
-                                      │
-                                      ├── Node 1: skill_extraction (LLM)
-                                      ├── Node 2: gap_analysis (LLM)
-                                      ├── Node 3: recommendation_generation (LLM)
+                                      ├── Node 1: skill_extraction  (LLM)
+                                      ├── Node 2: gap_analysis       (LLM)
+                                      ├── Node 3: recommendations    (LLM)
                                       └── Node 4: roadmap_generation (LLM)
 ```
 
@@ -324,10 +317,20 @@ FastAPI Router
 | `CHUNK_SIZE` | `1000` | Characters per chunk |
 | `CHUNK_OVERLAP` | `200` | Overlap between chunks |
 | `UPLOAD_DIR` | `./uploads` | File upload directory |
-| `MAX_FILE_SIZE_MB` | `20` | Max upload size |
+| `MAX_FILE_SIZE_MB` | `20` | Max upload size in MB |
 | `ALLOWED_EXTENSIONS` | `pdf,docx,txt` | Allowed file types |
 | `TOP_K_RESULTS` | `5` | Default retrieval count |
 | `SCORE_THRESHOLD` | `0.3` | Minimum similarity score |
+
+---
+
+## Team
+
+This backend was built as part of the **Path Pilot AI** project.
+
+| Member | Branch |
+|--------|--------|
+| Tejaswini | `dev/tejaswini` |
 
 ---
 
@@ -335,11 +338,8 @@ FastAPI Router
 
 **Ollama not reachable**
 ```bash
-# Make sure Ollama is running
 ollama serve
-
-# Verify the model is downloaded
-ollama list
+ollama list  # verify llama3 is downloaded
 ```
 
 **Model not found**
@@ -347,11 +347,20 @@ ollama list
 ollama pull llama3
 ```
 
-**Slow first request**
-The sentence-transformer model downloads on first use (~90 MB). Subsequent requests are fast.
-
-**ChromaDB errors**
-Delete the `chroma_db/` folder to reset the vector store:
+**pydantic-core build error**
+You are on Python 3.14. Use Python 3.11 instead:
 ```bash
+py -3.11 -m venv venv
+```
+
+**ChromaDB reset**
+```bash
+# Windows
+Remove-Item -Recurse -Force chroma_db
+
+# macOS/Linux
 rm -rf chroma_db/
 ```
+
+**Slow first request**
+The sentence-transformer model downloads on first use (~90 MB). Subsequent requests are fast.
