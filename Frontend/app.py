@@ -1,44 +1,57 @@
 import streamlit as st
+import os
 
 st.set_page_config(page_title="PathPilot AI", layout="wide")
 
-# ---------- STYLE ----------
-st.markdown("""
-<style>
-.stApp {
-    background-color: #0e1117;
-    color: white;
-}
+def load_css():
+    css_path = os.path.join(
+        os.path.dirname(__file__),
+        "assets",
+        "style.css"
+    )
 
-section[data-testid="stSidebar"] {
-    background-color: #111827;
-}
+    if not os.path.exists(css_path):
+        st.error(f"CSS file not found: {css_path}")
+        return
 
-h1, h2, h3 {
-    color: #00ffd5;
-}
-</style>
-""", unsafe_allow_html=True)
+    with open(css_path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# ---------- LOGIN ----------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+load_css()
 
-def login():
-    st.sidebar.title("🔐 Login")
+# ---------------- CENTER LOGIN UI ----------------
 
-    email = st.sidebar.text_input("Email")
-    password = st.sidebar.text_input("Password", type="password")
+if not st.session_state.get("logged_in", False):
 
-    if st.sidebar.button("Login"):
+    st.markdown(
+        """
+        <style>
+        .login-box {
+            text-align: center;
+            box-shadow: 0px 0px 20px rgba(0,255,213,0.2);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+
+    st.title("🚀 PathPilot AI Login")
+
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
         if email and password:
             st.session_state.logged_in = True
             st.session_state.user_id = email
+            st.rerun()
         else:
-            st.sidebar.error("Enter details")
+            st.error("Enter credentials")
 
-if not st.session_state.logged_in:
-    login()
+    st.markdown("</div>", unsafe_allow_html=True)
+
     st.stop()
 
 # ---------- SIDEBAR NAV ----------

@@ -1,0 +1,12 @@
+.stApp {
+    background-color: #8da2c6 !important;
+    color: white !important;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #f0f1f1 !important;
+}
+
+.stButton button {
+    color: black !important;
+}
