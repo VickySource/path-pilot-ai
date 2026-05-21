@@ -1,0 +1,28 @@
+# Local dev infra for PathPilot AI.
+# - Postgres 16 with pgvector for the app database + RAG vector store.
+# - Optional Ollama service (commented) for users running the local LLM fallback.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: pathpilot-postgres
+    environment:
+      POSTGRES_USER: pathpilot
+      POSTGRES_PASSWORD: pathpilot
+      POSTGRES_DB: pathpilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pathpilot_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports: ["11434:11434"]
+  #   volumes: ["ollama:/root/.ollama"]
+
+volumes:
+  pathpilot_pg:

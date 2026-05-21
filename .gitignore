@@ -1,27 +1,40 @@
-# Python bytecode
+# Node
+node_modules/
+.next/
+out/
+dist/
+.turbo/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Virtual Environment
-venv/
-env/
+*.egg-info/
 .venv/
+venv/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Environment Variables
+# Env files
 .env
+.env.*
+!.env.example
+!.env.local.example
 
-# Project Data (Avoid checking in large PDFs or local databases)
+# Data / artifacts
+backend/data/chroma/
+backend/data/uploads/
+*.sqlite
+*.db
 
-
-data/chroma_db/
-data/archive_memory/
-
-# Generated Output
-newsletter_*.html
-
-# IDE/System Files
-.vscode/
-.idea/
+# OS / editor
 .DS_Store
-Thumbs.db
+.idea/
+.vscode/
