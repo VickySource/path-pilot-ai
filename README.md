@@ -7,11 +7,7 @@ against any backend. Persistence is **PostgreSQL + pgvector** via SQLAlchemy
 (async) and Alembic, with an in-memory fallback for tests.
 
 > **Production app**: `/frontend` (Next.js) + `/backend` (FastAPI) — run locally.
->
-> The repo root still contains a TanStack Start scaffold (`src/`, `vite.config.ts`,
-> `wrangler.jsonc`). It is **not** part of the product and is kept only so the
-> Lovable build/preview infrastructure keeps working. Do not add product code
-> there — everything ships from `/frontend`.
+`.
 
 ## Layout
 
